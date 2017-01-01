@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         TextToEmoji
-// @namespace    http://tampermonkey.net/
+// @namespace    https://github.com/LoicDoitteau/LeekWars
 // @version      0.1
 // @description  Text to emoji
 // @author       Ref
@@ -12,16 +12,35 @@
 (function() {
     'use strict';
 
-    String.prototype.RemoveAccents = function() {
+	var ID = null;
+	var bunny = ["( )_( )", "(='.'=)", "(\")_(\")"];
+	var bunnyIndex = 0;
+	function Bunny()
+	{
+		var chat = $('#chat>.content>.flex>.chat-input');
+		var e = $.Event('keydown');
+		e.keyCode= 13;
+		chat[0].value = bunny[bunnyIndex++];
+		chat.trigger(e);
+		if(bunnyIndex == bunny.length)
+		{
+			bunnyIndex = 0;
+			clearInterval(ID);
+		}
+	}
+
+    String.prototype.RemoveAccents = function()
+	{
 		var strAccents = this.split('');
 		var strAccentsOut = [];
 		var strAccentsLen = strAccents.length;
 		var accents = 'ÀÁÂÃÄÅàáâãäåÒÓÔÕÕÖØòóôõöøÈÉÊËèéêëðÇçÐÌÍÎÏìíîïÙÚÛÜùúûüÑñŠšŸÿýŽž';
 		var accentsOut = "AAAAAAaaaaaaOOOOOOOooooooEEEEeeeeeCcDIIIIiiiiUUUUuuuuNnSsYyyZz";
-		for (var y = 0; y < strAccentsLen; y++) {
-			if (accents.indexOf(strAccents[y]) != -1) {
+		for (var y = 0; y < strAccentsLen; y++)
+		{
+			if (accents.indexOf(strAccents[y]) != -1)
 				strAccentsOut[y] = accentsOut.substr(accents.indexOf(strAccents[y]), 1);
-			} else
+			else
 				strAccentsOut[y] = strAccents[y];
 		}
 		strAccentsOut = strAccentsOut.join('');
@@ -35,33 +54,37 @@
         var space = ' ';
         var exclamation = '!';
         var question = '?';
-        var pattern = /^\/img (.+)/i;
-        chat.keydown(function(event) {
-            if(event.which == 13) {
-                if(pattern.test(chat[0].value)) {
-                    var text = chat[0].value.match(pattern)[1].RemoveAccents().toLowerCase();
+        var pattern1 = /^\/img (.+)/i;
+		var pattern2 = /^\/bunny$/;
+        chat.keydown(function(event)
+		{
+            if(event.which == 13)
+			{
+                if(pattern1.test(chat[0].value))
+				{
+                    var text = chat[0].value.match(pattern1)[1].RemoveAccents().toLowerCase();
                     var textLen = text.length;
                     var finalText = '';
                     for(var i = 0; i < textLen; i++)
                     {
-                        if(text[i] == space) {
+                        if(text[i] == space)
                             finalText += ':white_large_square: ';
-                        }
-                        else if(text[i] == question) {
+                        else if(text[i] == question)
                             finalText += ':question: ';
-                        }
-                        else if(text[i] == exclamation) {
+                        else if(text[i] == exclamation)
                             finalText += ':exclamation: ';
-                        }
-                        else if(alphabet.indexOf(text[i]) != -1) {
+                        else if(alphabet.indexOf(text[i]) != -1)
                             finalText += `:regional_indicator_${text[i]}: `;
-                        }
-                        else {
+                        else
                             finalText += text[i];
-                        }
                     }
                     chat[0].value = finalText;
                 }
+				else if(pattern2.test(chat[0].value))
+				{
+					chat[0].value = '';
+					ID = setInterval(Bunny, 500);
+				}
             }
         });
     });
