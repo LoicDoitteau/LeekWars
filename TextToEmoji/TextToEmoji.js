@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         TextToEmoji
 // @namespace    https://github.com/LoicDoitteau/LeekWars
-// @version      0.1
+// @version      0.2
 // @description  Text to emoji
 // @author       Ref
 // @match        https://leekwars.com/chat
@@ -13,14 +13,15 @@
     'use strict';
 
 	var ID = null;
-	var bunny = ["( )_( )", "(='.'=)", "(\")_(\")"];
+	var bunny = ["( )_( )", "(='.'=){0}", "(\")_(\")"];
+	var bunnyText = "";
 	var bunnyIndex = 0;
 	function Bunny()
 	{
 		var chat = $('#chat>.content>.flex>.chat-input');
 		var e = $.Event('keydown');
 		e.keyCode= 13;
-		chat[0].value = bunny[bunnyIndex++];
+		chat[0].value = bunny[bunnyIndex++].Format(bunnyText);
 		chat.trigger(e);
 		if(bunnyIndex == bunny.length)
 		{
@@ -47,6 +48,17 @@
 		return strAccentsOut;
 	};
 
+	String.prototype.Format = function()
+	{
+	   var content = this;
+	   for (var i=0; i < arguments.length; i++)
+	   {
+			var replacement = new RegExp('\\{' + i + '\\}', 'g');
+			content = content.replace(replacement, arguments[i]);
+	   }
+	   return content;
+	};
+
     LW.on('pageload', function()
 	{
         var chat = $('#chat>.content>.flex>.chat-input');
@@ -55,7 +67,7 @@
         var exclamation = '!';
         var question = '?';
         var pattern1 = /^\/img (.+)/i;
-		var pattern2 = /^\/bunny$/;
+		var pattern2 = /^\/bunny(?: (.+))?/;
         chat.keydown(function(event)
 		{
             if(event.which == 13)
@@ -82,7 +94,12 @@
                 }
 				else if(pattern2.test(chat[0].value))
 				{
-					chat[0].value = '';
+					bunnyText = chat[0].value.match(pattern2)[1];
+					if(bunnyText == null)
+						bunnyText = "";
+					else
+						bunnyText = " > " + bunnyText;
+					chat[0].value = "";
 					ID = setInterval(Bunny, 500);
 				}
             }
